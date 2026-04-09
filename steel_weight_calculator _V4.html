@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steel Weight Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --card: #21253a;
+    --border: #2e3350;
+    --accent: #f5a623;
+    --accent2: #e8562a;
+    --text: #e8eaf0;
+    --muted: #7a809a;
+    --green: #3ecf8e;
+    --input-bg: #13151f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 18px; color: #000;
+  }
+  header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text);
+  }
+  header h1 span { color: var(--accent); }
+  .header-sub { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+  /* TABS */
+  .tabs-wrap {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; gap: 2px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 14px 20px;
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* MAIN */
+  .main {
+    max-width: 1100px; margin: 32px auto; padding: 0 24px;
+    display: grid; grid-template-columns: 1fr 360px; gap: 24px;
+    align-items: start;
+  }
+
+  /* CALCULATOR CARD */
+  .calc-panel { display: none; }
+  .calc-panel.active { display: block; }
+
+  .calc-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .calc-header {
+    background: linear-gradient(135deg, var(--surface) 0%, #252940 100%);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .calc-badge {
+    background: var(--accent);
+    color: #000; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 11px; letter-spacing: 1px;
+    padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+  }
+  .calc-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 700; letter-spacing: 1px;
+  }
+  .calc-body { padding: 24px; }
+
+  .field-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field input, .field select {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 16px; font-weight: 500;
+    padding: 10px 14px;
+    outline: none; transition: border-color 0.2s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+  }
+  .field select option { background: var(--card); }
+
+  .formula-hint {
+    margin: 16px 0 0;
+    background: var(--input-bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-size: 12px; color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.5px;
+  }
+
+  /* RESULT */
+  .result-display {
+    margin-top: 24px;
+    background: linear-gradient(135deg, #1a2f1a 0%, #0f1f0f 100%);
+    border: 1px solid #2a4a2a; border-radius: 10px;
+    padding: 20px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .result-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--green); opacity: 0.8;
+  }
+  .result-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 42px; font-weight: 800; color: var(--green);
+    line-height: 1;
+  }
+  .result-unit {
+    font-size: 18px; font-weight: 400; opacity: 0.7; margin-left: 6px;
+  }
+
+  .add-btn {
+    margin-top: 16px; width: 100%;
+    background: var(--accent); color: #000;
+    border: none; border-radius: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 800;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 12px; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .add-btn:hover { opacity: 0.85; }
+
+  /* BOM PANEL */
+  .bom-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    position: sticky; top: 24px;
+  }
+  .bom-header {
+    background: var(--surface);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .bom-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .bom-count {
+    background: var(--accent2); color: #fff;
+    border-radius: 20px; padding: 2px 10px;
+    font-size: 12px; font-weight: 700;
+  }
+  .bom-list { max-height: 400px; overflow-y: auto; }
+  .bom-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: flex-start;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .bom-item:last-child { border-bottom: none; }
+  .bom-item-name {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    line-height: 1.3;
+  }
+  .bom-item-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .bom-item-qty {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 800; color: var(--green);
+    white-space: nowrap; margin-left: 12px;
+  }
+  .bom-item-remove {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 16px; padding: 0 0 0 8px;
+    line-height: 1;
+  }
+  .bom-item-remove:hover { color: var(--accent2); }
+  .bom-empty {
+    padding: 32px 20px; text-align: center;
+    color: var(--muted); font-size: 13px;
+  }
+  .bom-total {
+    padding: 16px 20px;
+    background: var(--surface);
+    border-top: 2px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .bom-total-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .bom-total-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 800; color: var(--accent);
+  }
+  .bom-actions {
+    padding: 12px 20px;
+    display: flex; gap: 8px;
+  }
+  .bom-btn {
+    flex: 1; border: none; border-radius: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 10px; cursor: pointer;
+  }
+  .bom-btn.clear { background: var(--input-bg); color: var(--muted); }
+  .bom-btn.clear:hover { color: var(--accent2); }
+  .bom-btn.export {
+    background: var(--accent); color: #000;
+  }
+  .bom-btn.export:hover { opacity: 0.85; }
+
+  /* weight/mtr info display */
+  .wt-info {
+    margin-top: 12px;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--input-bg); border-radius: 6px; padding: 8px 14px;
+    border: 1px solid var(--border);
+  }
+  .wt-info-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .wt-info-value { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; color: var(--accent); }
+  .wt-info-unit { font-size: 12px; color: var(--muted); }
+
+  /* BUTTON ROW */
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+  .add-btn { margin-top: 0 !important; flex: 1; }
+  .clear-btn {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px; color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 12px 18px; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .clear-btn:hover { color: var(--accent2); border-color: var(--accent2); }
+
+  /* BOM MOBILE TOGGLE */
+  .bom-fab {
+    display: none;
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--accent); color: #000;
+    border: none; border-radius: 50px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 800; letter-spacing: 1px;
+    padding: 14px 20px; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(245,166,35,0.4);
+    z-index: 100;
+  }
+  .bom-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+  }
+  .bom-drawer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--card);
+    border-radius: 16px 16px 0 0;
+    border-top: 2px solid var(--accent);
+    max-height: 85vh; overflow-y: auto;
+    z-index: 201;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+  .bom-drawer.open { transform: translateY(0); }
+  .bom-drawer-handle {
+    width: 40px; height: 4px;
+    background: var(--border); border-radius: 2px;
+    margin: 12px auto 0;
+  }
+
+  /* MOBILE BREAKPOINT */
+  @media (max-width: 768px) {
+    header { padding: 12px 16px; gap: 10px; }
+    header h1 { font-size: 20px; }
+    .header-sub { display: none; }
+    .logo-icon { width: 32px; height: 32px; font-size: 14px; }
+
+    .tabs-wrap { padding: 0 8px; }
+    .tab-btn { padding: 12px 12px; font-size: 12px; }
+
+    .main {
+      grid-template-columns: 1fr;
+      margin: 16px auto;
+      padding: 0 12px;
+      gap: 0;
+    }
+    /* hide sidebar BOM on mobile */
+    .main > .bom-panel { display: none; }
+
+    .calc-body { padding: 16px; }
+    .calc-header { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
+    .calc-title { font-size: 18px; }
+
+    .field-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .result-value { font-size: 32px; }
+
+    /* show FAB and drawer */
+    .bom-fab { display: flex; align-items: center; gap: 8px; }
+    .bom-overlay.open { display: block; }
+    .bom-drawer { display: block; }
+
+    /* pipe mode toggle wrap */
+    .pipe-mode-wrap { margin-left: 0 !important; margin-top: 6px; width: 100%; }
+  }
+
+  @media (max-width: 400px) {
+    .field-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">S</div>
+  <h1>Steel <span>Weight</span> Calculator</h1>
+  <div class="header-sub">All weights in Metric Tons (MT)</div>
+</header>
+
+<div class="tabs-wrap" id="tabsWrap">
+  <button class="tab-btn active" onclick="switchTab('plates', this)">MS Plates</button>
+  <button class="tab-btn" onclick="switchTab('channels', this)">MS Channels</button>
+  <button class="tab-btn" onclick="switchTab('beams', this)">RS Joists / Beams</button>
+  <button class="tab-btn" onclick="switchTab('purlin', this)">Purlin</button>
+  <button class="tab-btn" onclick="switchTab('roofing', this)">Roofing</button>
+  <button class="tab-btn" onclick="switchTab('angles', this)">MS Equal Angles</button>
+  <button class="tab-btn" onclick="switchTab('flats', this)">MS Flats</button>
+  <button class="tab-btn" onclick="switchTab('decking', this)">Decking Sheet</button>
+  <button class="tab-btn" onclick="switchTab('pipes', this)">MS Pipes</button>
+</div>
+
+<div class="main">
+  <div>
+
+    <!-- MS PLATES -->
+    <div class="calc-panel active" id="panel-plates">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 1</span>
+          <span class="calc-title">MS Plates / Sheets</span>
+        </div>
+        <div class="calc-body">
+          <div class="field-grid">
+            <div class="field">
+              <label>Thickness (mm)</label>
+              <input type="number" id="pl-thk" placeholder="e.g. 12" oninput="calcPlates()">
+            </div>
+            <div class="field">
+              <label>Width (mm)</label>
+              <input type="number" id="pl-wid" placeholder="e.g. 2500" oninput="calcPlates()">
+            </div>
+            <div class="field">
+              <label>Length (mm)</label>
+              <input type="number" id="pl-len" placeholder="e.g. 6000" oninput="calcPlates()">
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="pl-nos" placeholder="e.g. 2" oninput="calcPlates()">
+            </div>
+          </div>
+          <div class="formula-hint">Formula: THK × WIDTH × LENGTH × NOS × 7.85 ÷ 1,000,000,000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="pl-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('plates')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('plates')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MS CHANNELS -->
+    <div class="calc-panel" id="panel-channels">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 2</span>
+          <span class="calc-title">MS Channels (ISMC)</span>
+        </div>
+        <div class="calc-body">
+          <div class="field-grid">
+            <div class="field">
+              <label>Size (mm)</label>
+              <select id="ch-size" onchange="updateChannelWt(); calcChannels()">
+                <option value="">Select Size</option>
+                <option value="75x40">75 × 40</option>
+                <option value="100x50">100 × 50</option>
+                <option value="125x65">125 × 65</option>
+                <option value="150x75">150 × 75</option>
+                <option value="175x75">175 × 75</option>
+                <option value="200x75a">200 × 75 (22.3)</option>
+                <option value="200x75b">200 × 75 (24.2)</option>
+                <option value="250x82">250 × 82</option>
+                <option value="300x90">300 × 90</option>
+                <option value="400x100">400 × 100</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Length (mtr)</label>
+              <select id="ch-len" onchange="calcChannels()">
+                <option value="">Select</option>
+                <option value="6">6 Mtr</option>
+                <option value="12">12 Mtr</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="ch-nos" placeholder="e.g. 10" oninput="calcChannels()">
+            </div>
+          </div>
+          <div class="wt-info" id="ch-wt-info" style="display:none">
+            <span class="wt-info-label">Wt/Mtr</span>
+            <span class="wt-info-value" id="ch-wt-val">—</span>
+            <span class="wt-info-unit">kg/mtr</span>
+          </div>
+          <div class="formula-hint">Formula: Wt/Mtr × Length × Nos ÷ 1000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="ch-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('channels')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('channels')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEAMS -->
+    <div class="calc-panel" id="panel-beams">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 3</span>
+          <span class="calc-title">RS Joists / Beams (ISMB)</span>
+        </div>
+        <div class="calc-body">
+          <div class="field-grid">
+            <div class="field">
+              <label>Size (mm)</label>
+              <select id="bm-size" onchange="updateBeamWt(); calcBeams()">
+                <option value="">Select Size</option>
+                <option value="100x50">100 × 50</option>
+                <option value="125x70">125 × 70</option>
+                <option value="150x75">150 × 75</option>
+                <option value="200x100">200 × 100</option>
+                <option value="225x110">225 × 110</option>
+                <option value="250x125">250 × 125</option>
+                <option value="300x140">300 × 140</option>
+                <option value="350x140">350 × 140</option>
+                <option value="400x140">400 × 140</option>
+                <option value="450x150">450 × 150</option>
+                <option value="500x180">500 × 180</option>
+                <option value="600x210">600 × 210</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Length (mtr)</label>
+              <select id="bm-len" onchange="calcBeams()">
+                <option value="">Select</option>
+                <option value="6">6 Mtr</option>
+                <option value="12">12 Mtr</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="bm-nos" placeholder="e.g. 5" oninput="calcBeams()">
+            </div>
+          </div>
+          <div class="wt-info" id="bm-wt-info" style="display:none">
+            <span class="wt-info-label">Wt/Mtr</span>
+            <span class="wt-info-value" id="bm-wt-val">—</span>
+            <span class="wt-info-unit">kg/mtr</span>
+          </div>
+          <div class="formula-hint">Formula: Wt/Mtr × Length × Nos ÷ 1000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="bm-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('beams')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('beams')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PURLIN -->
+    <div class="calc-panel" id="panel-purlin">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 4</span>
+          <span class="calc-title">Purlin (2mm × 200 × 60 × 60 × 20)</span>
+        </div>
+        <div class="calc-body">
+          <div class="field-grid">
+            <div class="field">
+              <label>Length (mtr)</label>
+              <input type="number" id="pu-len" placeholder="e.g. 6" oninput="calcPurlin()">
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="pu-nos" placeholder="e.g. 20" oninput="calcPurlin()">
+            </div>
+          </div>
+          <div class="formula-hint">Formula: Length × 5.5 × Nos ÷ 1000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="pu-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('purlin')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('purlin')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOFING -->
+    <div class="calc-panel" id="panel-roofing">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 5</span>
+          <span class="calc-title">Roofing Sheet</span>
+        </div>
+        <div class="calc-body">
+          <div class="field-grid">
+            <div class="field">
+              <label>Type</label>
+              <select id="rf-type" onchange="calcRoofing()">
+                <option value="">Select Type</option>
+                <option value="cc">Colour Coated (CC) — 4.5 kg/mtr</option>
+                <option value="bgl">BGL Roof Sheet — 4.35 kg/mtr</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Length (mtr)</label>
+              <input type="number" id="rf-len" placeholder="e.g. 6" oninput="calcRoofing()">
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="rf-nos" placeholder="e.g. 30" oninput="calcRoofing()">
+            </div>
+          </div>
+          <div class="formula-hint">CC: 4.5 × Length × Nos ÷ 1000 &nbsp;|&nbsp; BGL: 4.35 × Length × Nos ÷ 1000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="rf-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('roofing')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('roofing')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MS EQUAL ANGLES -->
+    <div class="calc-panel" id="panel-angles">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 6</span>
+          <span class="calc-title">MS Equal Angles (ISA)</span>
+        </div>
+        <div class="calc-body">
+          <div class="field-grid">
+            <div class="field">
+              <label>Size (mm)</label>
+              <select id="ag-size" onchange="updateAngleTHK(); calcAngles()">
+                <option value="">Select Size</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Thickness (mm)</label>
+              <select id="ag-thk" onchange="updateAngleWt(); calcAngles()">
+                <option value="">Select THK</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Length (mtr)</label>
+              <select id="ag-len" onchange="calcAngles()">
+                <option value="">Select</option>
+                <option value="6">6 Mtr</option>
+                <option value="12">12 Mtr</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="ag-nos" placeholder="e.g. 10" oninput="calcAngles()">
+            </div>
+          </div>
+          <div class="wt-info" id="ag-wt-info" style="display:none">
+            <span class="wt-info-label">Wt/Mtr</span>
+            <span class="wt-info-value" id="ag-wt-val">—</span>
+            <span class="wt-info-unit">kg/mtr</span>
+          </div>
+          <div class="formula-hint">Formula: Wt/Mtr × Length × Nos ÷ 1000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="ag-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('angles')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('angles')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MS FLATS -->
+    <div class="calc-panel" id="panel-flats">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 7</span>
+          <span class="calc-title">MS Flats (ISF)</span>
+        </div>
+        <div class="calc-body">
+          <div class="field-grid">
+            <div class="field">
+              <label>Size (mm)</label>
+              <select id="fl-size" onchange="updateFlatTHK(); calcFlats()">
+                <option value="">Select Size</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Thickness (mm)</label>
+              <select id="fl-thk" onchange="updateFlatWt(); calcFlats()">
+                <option value="">Select THK</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Length (mtr)</label>
+              <select id="fl-len" onchange="calcFlats()">
+                <option value="">Select</option>
+                <option value="6">6 Mtr</option>
+                <option value="12">12 Mtr</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="fl-nos" placeholder="e.g. 10" oninput="calcFlats()">
+            </div>
+          </div>
+          <div class="wt-info" id="fl-wt-info" style="display:none">
+            <span class="wt-info-label">Wt/Mtr</span>
+            <span class="wt-info-value" id="fl-wt-val">—</span>
+            <span class="wt-info-unit">kg/mtr</span>
+          </div>
+          <div class="formula-hint">Formula: Wt/Mtr × Length × Nos ÷ 1000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="fl-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('flats')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('flats')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DECKING SHEET -->
+    <div class="calc-panel" id="panel-decking">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 8</span>
+          <span class="calc-title">Decking Sheet (Width 960mm)</span>
+        </div>
+        <div class="calc-body">
+          <div class="field-grid">
+            <div class="field">
+              <label>Thickness (mm)</label>
+              <select id="dk-thk" onchange="calcDecking()">
+                <option value="">Select THK</option>
+                <option value="0.8">0.8 mm (7.5 kg/mtr)</option>
+                <option value="0.9">0.9 mm (8.5 kg/mtr)</option>
+                <option value="1.0">1.0 mm (9.5 kg/mtr)</option>
+                <option value="1.2">1.2 mm (11.5 kg/mtr)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Length (mtr)</label>
+              <input type="number" id="dk-len" placeholder="e.g. 6" oninput="calcDecking()">
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="dk-nos" placeholder="e.g. 25" oninput="calcDecking()">
+            </div>
+          </div>
+          <div class="formula-hint">0.8→7.5 | 0.9→8.5 | 1.0→9.5 | 1.2→11.5 × Length × Nos ÷ 1000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="dk-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('decking')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('decking')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MS PIPES -->
+    <div class="calc-panel" id="panel-pipes">
+      <div class="calc-card">
+        <div class="calc-header">
+          <span class="calc-badge">Section 9</span>
+          <span class="calc-title">MS Pipes (Circular)</span>
+          <div style="margin-left:auto;display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+            <button id="pi-mode-nb" onclick="setPipeMode('nb')" style="padding:6px 14px;background:var(--accent);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer">BY NB</button>
+            <button id="pi-mode-od" onclick="setPipeMode('od')" style="padding:6px 14px;background:transparent;color:var(--muted);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer">BY OD</button>
+          </div>
+        </div>
+        <div class="calc-body">
+          <!-- NB mode row -->
+          <div id="pi-nb-row" class="field-grid" style="margin-bottom:16px">
+            <div class="field">
+              <label>Nominal Bore (NB)</label>
+              <select id="pi-nb" onchange="applyNB(); calcPipes()">
+                <option value="">Select NB</option>
+                <option value="15">NB 15 (OD 21.3mm)</option>
+                <option value="20">NB 20 (OD 26.9mm)</option>
+                <option value="25">NB 25 (OD 33.7mm)</option>
+                <option value="32">NB 32 (OD 42.4mm)</option>
+                <option value="40">NB 40 (OD 48.3mm)</option>
+                <option value="50">NB 50 (OD 60.3mm)</option>
+                <option value="65">NB 65 (OD 76.1mm)</option>
+                <option value="80">NB 80 (OD 88.9mm)</option>
+                <option value="100">NB 100 (OD 114.3mm)</option>
+                <option value="125">NB 125 (OD 139.7mm)</option>
+                <option value="150">NB 150 (OD 168.3mm)</option>
+                <option value="200">NB 200 (OD 219.1mm)</option>
+                <option value="250">NB 250 (OD 273mm)</option>
+                <option value="300">NB 300 (OD 323.9mm)</option>
+                <option value="350">NB 350 (OD 355.6mm)</option>
+                <option value="400">NB 400 (OD 406.4mm)</option>
+              </select>
+            </div>
+          </div>
+          <!-- OD field (always present, read-only in NB mode) -->
+          <div class="field-grid">
+            <div class="field">
+              <label>Outer Diameter (mm)</label>
+              <input type="number" id="pi-od" placeholder="e.g. 48.3" oninput="calcPipes()" readonly style="opacity:0.5;cursor:not-allowed">
+            </div>
+            <div class="field">
+              <label>Wall Thickness (mm)</label>
+              <input type="number" id="pi-wt" placeholder="e.g. 3.2" oninput="calcPipes()">
+            </div>
+            <div class="field">
+              <label>Length (mtr)</label>
+              <input type="number" id="pi-len" placeholder="e.g. 6" oninput="calcPipes()">
+            </div>
+            <div class="field">
+              <label>Nos</label>
+              <input type="number" id="pi-nos" placeholder="e.g. 10" oninput="calcPipes()">
+            </div>
+          </div>
+          <div class="wt-info" id="pi-wt-info" style="display:none">
+            <span class="wt-info-label">Wt/Mtr</span>
+            <span class="wt-info-value" id="pi-wt-val">—</span>
+            <span class="wt-info-unit">kg/mtr</span>
+          </div>
+          <div class="formula-hint">Wt/Mtr = (OD − WT) × WT × 0.02466 &nbsp;|&nbsp; Total = Wt/Mtr × Length × Nos ÷ 1000</div>
+          <div class="result-display">
+            <div>
+              <div class="result-label">Weight</div>
+              <div class="result-value" id="pi-result">—<span class="result-unit">MT</span></div>
+            </div>
+          </div>
+          <div class="btn-row"><button class="add-btn" onclick="addToBOM('pipes')">+ Add to BOM</button><button class="clear-btn" onclick="clearSection('pipes')">✕ Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOM PANEL -->
+  <div class="bom-panel">
+    <div class="bom-header">
+      <span class="bom-title">Bill of Materials</span>
+      <span class="bom-count" id="bom-count">0</span>
+    </div>
+    <div class="bom-list" id="bom-list">
+      <div class="bom-empty">No items added yet.<br>Calculate and add items above.</div>
+    </div>
+    <div class="bom-total">
+      <span class="bom-total-label">Grand Total</span>
+      <span class="bom-total-value" id="bom-grand">0.000 MT</span>
+    </div>
+    <div class="bom-actions">
+      <button class="bom-btn clear" onclick="clearBOM()">Clear All</button>
+      <button class="bom-btn export" onclick="exportBOM()">Export CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BOM FAB -->
+<button class="bom-fab" onclick="openBOMDrawer()">
+  📋 BOM <span id="fab-count" style="background:#000;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">0</span>
+</button>
+
+<!-- MOBILE BOM DRAWER -->
+<div class="bom-overlay" id="bom-overlay" onclick="closeBOMDrawer()"></div>
+<div class="bom-drawer" id="bom-drawer">
+  <div class="bom-drawer-handle"></div>
+  <div class="bom-header" style="margin-top:8px">
+    <span class="bom-title">Bill of Materials</span>
+    <span class="bom-count" id="bom-count-drawer">0</span>
+    <button onclick="closeBOMDrawer()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">✕</button>
+  </div>
+  <div class="bom-list" id="bom-list-drawer">
+    <div class="bom-empty">No items yet.</div>
+  </div>
+  <div class="bom-total">
+    <span class="bom-total-label">Grand Total</span>
+    <span class="bom-total-value" id="bom-grand-drawer">0.000 MT</span>
+  </div>
+  <div class="bom-actions">
+    <button class="bom-btn clear" onclick="clearBOM()">Clear All</button>
+    <button class="bom-btn export" onclick="exportBOM()">Export CSV</button>
+  </div>
+</div>
+
+<script>
+// ============ DATA TABLES ============
+
+const CHANNELS = {
+  '75x40':   7.14,
+  '100x50':  9.56,
+  '125x65':  13.1,
+  '150x75':  16.8,
+  '175x75':  19.6,
+  '200x75a': 22.3,
+  '200x75b': 24.2,
+  '250x82':  34.2,
+  '300x90':  36.3,
+  '400x100': 50.1
+};
+
+const BEAMS = {
+  '100x50':  8.34,
+  '125x70':  13.2,
+  '150x75':  15,
+  '200x100': 25.4,
+  '225x110': 31.3,
+  '250x125': 37.3,
+  '300x140': 46.1,
+  '350x140': 52.4,
+  '400x140': 61.05,
+  '450x150': 72.4,
+  '500x180': 86.9,
+  '600x210': 123
+};
+
+const ANGLES = {
+  '20x20':   {3: 0.9, 4: 1.1},
+  '25x25':   {3: 1.1, 4: 1.4, 5: 1.8, 6: 2.2},
+  '30x30':   {3: 1.4, 4: 1.8, 5: 2.2, 6: 2.8},
+  '35x35':   {3: 1.6, 4: 2.1, 5: 2.6, 6: 3},
+  '40x40':   {3: 1.8, 4: 2.4, 5: 3, 6: 3.5},
+  '45x45':   {3: 2.1, 4: 2.7, 5: 3.4, 6: 4},
+  '50x50':   {3: 2.3, 4: 3, 5: 3.8, 6: 4.5},
+  '65x65':   {5: 4.9, 6: 5.8, 8: 7.7, 10: 9.4},
+  '75x75':   {5: 5.7, 6: 6.8, 8: 8.9, 10: 11},
+  '80x80':   {6: 7.3, 8: 9.6, 10: 11.8, 12: 14},
+  '90x90':   {6: 8.2, 8: 10.8, 10: 13.4, 12: 15.8},
+  '100x100': {6: 9.2, 8: 12.1, 10: 14.9, 12: 17.7},
+  '110x110': {8: 13.4, 10: 16.5, 12: 19.6, 16: 24.2},
+  '130x130': {8: 15.9, 10: 19.7, 12: 23.4, 16: 28.9},
+  '150x150': {10: 22.8, 12: 27.2, 16: 35.8, 18: 39.9, 20: 44.1},
+  '200x200': {12: 36.6, 16: 48.5, 18: 54, 20: 60, 25: 73.6}
+};
+
+const FLATS = {
+  16:  {5: 0.6, 6: 0.8, 8: 1, 10: 1.3, 12: 1.5, 16: 2, 18: 2.3, 20: 2.5, 22: 2.8, 25: 3.1},
+  20:  {3: 0.47, 5: 0.8, 6: 0.9, 8: 1.3, 10: 1.6, 12: 1.9, 16: 2.5, 18: 2.8, 20: 3.1, 22: 3.5, 25: 3.9},
+  25:  {3: 0.6, 5: 1, 6: 1.2, 8: 1.6, 10: 2, 12: 2.4, 16: 3.1, 18: 3.5, 20: 3.9, 22: 4.3, 25: 4.9},
+  32:  {3: 0.8, 5: 1.3, 6: 1.5, 8: 2, 10: 2.4, 12: 3, 16: 4, 18: 4.5, 20: 5, 22: 5.5, 25: 6.3},
+  35:  {6: 1.6, 10: 2.8},
+  40:  {3: 0.9, 5: 1.6, 6: 1.9, 8: 2.5, 10: 3.1, 12: 3.8, 16: 5, 18: 5.7, 20: 6.3, 22: 6.9, 25: 7.8},
+  45:  {6: 2.1, 10: 3.5, 12: 4.2},
+  50:  {3: 1.2, 5: 2, 6: 2.4, 8: 3.1, 10: 3.9, 12: 4.7, 16: 6.3, 18: 7.1, 20: 7.8, 22: 8.6, 25: 9.8},
+  63:  {5: 2.5, 6: 3, 8: 4, 10: 4.9, 12: 5.9, 16: 7.9, 18: 8.9, 20: 9.9, 22: 10.9, 25: 12.4},
+  65:  {6: 4.1, 8: 5.1, 10: 6.1, 20: 10.2},
+  75:  {6: 3.5, 8: 4.7, 10: 5.9, 12: 7.1, 16: 9.4, 18: 10.6, 20: 11.8, 22: 12.9, 25: 14.7},
+  80:  {5: 3.1, 6: 3.8, 8: 5, 10: 5.9, 12: 7.1, 16: 9.4, 18: 10.6, 20: 11.8, 22: 12.9, 25: 14.7},
+  100: {5: 3.9, 6: 4.7, 8: 6.3, 10: 7.8, 12: 9.4, 16: 12.6, 18: 14, 20: 15.7, 22: 17.5, 25: 19.6},
+  125: {5: 4.9, 6: 5.9, 8: 7.8, 10: 9.8, 12: 11.8, 16: 15.7, 18: 17.7, 20: 19.6, 22: 21.6, 25: 25.5},
+  150: {10: 11.8, 12: 14.1, 18: 18.8, 20: 23.1, 25: 29.4},
+  160: {6: 6.3, 8: 7.5, 10: 12.6, 12: 15.1, 16: 20.1, 18: 22.6, 20: 25.1, 22: 27.6, 25: 31.4},
+  180: {10: 17, 12: 22.6, 16: 25.4, 18: 28.3},
+  200: {5: 7.8, 6: 9.4, 8: 12.6, 10: 15.7, 12: 18.8, 16: 25.1, 18: 28.3, 20: 31.4, 22: 34.5, 25: 39.2},
+  250: {5: 9.8, 6: 11.3, 8: 15.7, 10: 19.6, 12: 23.6, 16: 31.4, 18: 35.3, 20: 39.2, 22: 43.2, 25: 49.1}
+};
+
+const DECKING = {0.8: 7.5, 0.9: 8.5, 1.0: 9.5, 1.2: 11.5};
+
+// ============ INIT DROPDOWNS ============
+function initDropdowns() {
+  // Angles size
+  const agSize = document.getElementById('ag-size');
+  Object.keys(ANGLES).forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s.replace('x', ' × ');
+    agSize.appendChild(o);
+  });
+
+  // Flats size
+  const flSize = document.getElementById('fl-size');
+  Object.keys(FLATS).forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s + ' mm';
+    flSize.appendChild(o);
+  });
+}
+
+function updateAngleTHK() {
+  const size = document.getElementById('ag-size').value;
+  const thkSel = document.getElementById('ag-thk');
+  thkSel.innerHTML = '<option value="">Select THK</option>';
+  document.getElementById('ag-wt-info').style.display = 'none';
+  if (!size) return;
+  const thks = ANGLES[size];
+  Object.keys(thks).forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t + ' mm';
+    thkSel.appendChild(o);
+  });
+}
+
+function updateAngleWt() {
+  const size = document.getElementById('ag-size').value;
+  const thk = document.getElementById('ag-thk').value;
+  const info = document.getElementById('ag-wt-info');
+  if (size && thk && ANGLES[size] && ANGLES[size][thk]) {
+    document.getElementById('ag-wt-val').textContent = ANGLES[size][thk];
+    info.style.display = 'inline-flex';
+  } else {
+    info.style.display = 'none';
+  }
+}
+
+function updateFlatTHK() {
+  const size = document.getElementById('fl-size').value;
+  const thkSel = document.getElementById('fl-thk');
+  thkSel.innerHTML = '<option value="">Select THK</option>';
+  document.getElementById('fl-wt-info').style.display = 'none';
+  if (!size) return;
+  const thks = FLATS[size];
+  Object.keys(thks).forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t + ' mm';
+    thkSel.appendChild(o);
+  });
+}
+
+function updateFlatWt() {
+  const size = document.getElementById('fl-size').value;
+  const thk = document.getElementById('fl-thk').value;
+  const info = document.getElementById('fl-wt-info');
+  if (size && thk && FLATS[size] && FLATS[size][thk]) {
+    document.getElementById('fl-wt-val').textContent = FLATS[size][thk];
+    info.style.display = 'inline-flex';
+  } else {
+    info.style.display = 'none';
+  }
+}
+
+function updateChannelWt() {
+  const size = document.getElementById('ch-size').value;
+  const info = document.getElementById('ch-wt-info');
+  if (size && CHANNELS[size]) {
+    document.getElementById('ch-wt-val').textContent = CHANNELS[size];
+    info.style.display = 'inline-flex';
+  } else {
+    info.style.display = 'none';
+  }
+}
+
+function updateBeamWt() {
+  const size = document.getElementById('bm-size').value;
+  const info = document.getElementById('bm-wt-info');
+  if (size && BEAMS[size]) {
+    document.getElementById('bm-wt-val').textContent = BEAMS[size];
+    info.style.display = 'inline-flex';
+  } else {
+    info.style.display = 'none';
+  }
+}
+
+// ============ CALCULATORS ============
+function fmt(n) { return n.toFixed(6).replace(/0+$/, '').replace(/\.$/, ''); }
+function setResult(id, val) {
+  const el = document.getElementById(id);
+  if (val === null) { el.innerHTML = '—<span class="result-unit">MT</span>'; return; }
+  el.innerHTML = fmt(val) + '<span class="result-unit"> MT</span>';
+}
+
+function calcPlates() {
+  const thk = parseFloat(document.getElementById('pl-thk').value);
+  const wid = parseFloat(document.getElementById('pl-wid').value);
+  const len = parseFloat(document.getElementById('pl-len').value);
+  const nos = parseFloat(document.getElementById('pl-nos').value);
+  if (isNaN(thk)||isNaN(wid)||isNaN(len)||isNaN(nos)) { setResult('pl-result', null); return; }
+  setResult('pl-result', thk * wid * len * nos * 7.85 / 1e9);
+}
+
+function calcChannels() {
+  const size = document.getElementById('ch-size').value;
+  const len  = parseFloat(document.getElementById('ch-len').value);
+  const nos  = parseFloat(document.getElementById('ch-nos').value);
+  if (!size || isNaN(len) || isNaN(nos)) { setResult('ch-result', null); return; }
+  setResult('ch-result', CHANNELS[size] * len * nos / 1000);
+}
+
+function calcBeams() {
+  const size = document.getElementById('bm-size').value;
+  const len  = parseFloat(document.getElementById('bm-len').value);
+  const nos  = parseFloat(document.getElementById('bm-nos').value);
+  if (!size || isNaN(len) || isNaN(nos)) { setResult('bm-result', null); return; }
+  setResult('bm-result', BEAMS[size] * len * nos / 1000);
+}
+
+function calcPurlin() {
+  const len = parseFloat(document.getElementById('pu-len').value);
+  const nos = parseFloat(document.getElementById('pu-nos').value);
+  if (isNaN(len)||isNaN(nos)) { setResult('pu-result', null); return; }
+  setResult('pu-result', len * 5.5 * nos / 1000);
+}
+
+function calcRoofing() {
+  const type = document.getElementById('rf-type').value;
+  const len  = parseFloat(document.getElementById('rf-len').value);
+  const nos  = parseFloat(document.getElementById('rf-nos').value);
+  if (!type || isNaN(len) || isNaN(nos)) { setResult('rf-result', null); return; }
+  const factor = type === 'cc' ? 4.5 : 4.35;
+  setResult('rf-result', factor * len * nos / 1000);
+}
+
+function calcAngles() {
+  const size = document.getElementById('ag-size').value;
+  const thk  = document.getElementById('ag-thk').value;
+  const len  = parseFloat(document.getElementById('ag-len').value);
+  const nos  = parseFloat(document.getElementById('ag-nos').value);
+  if (!size||!thk||isNaN(len)||isNaN(nos)) { setResult('ag-result', null); return; }
+  const wt = ANGLES[size] && ANGLES[size][thk];
+  if (!wt) { setResult('ag-result', null); return; }
+  setResult('ag-result', wt * len * nos / 1000);
+}
+
+function calcFlats() {
+  const size = document.getElementById('fl-size').value;
+  const thk  = document.getElementById('fl-thk').value;
+  const len  = parseFloat(document.getElementById('fl-len').value);
+  const nos  = parseFloat(document.getElementById('fl-nos').value);
+  if (!size||!thk||isNaN(len)||isNaN(nos)) { setResult('fl-result', null); return; }
+  const wt = FLATS[size] && FLATS[size][thk];
+  if (!wt) { setResult('fl-result', null); return; }
+  setResult('fl-result', wt * len * nos / 1000);
+}
+
+const NB_OD = {15:21.3,20:26.9,25:33.7,32:42.4,40:48.3,50:60.3,65:76.1,80:88.9,100:114.3,125:139.7,150:168.3,200:219.1,250:273,300:323.9,350:355.6,400:406.4};
+
+function setPipeMode(mode) {
+  const odInput = document.getElementById('pi-od');
+  const nbRow   = document.getElementById('pi-nb-row');
+  const btnNB   = document.getElementById('pi-mode-nb');
+  const btnOD   = document.getElementById('pi-mode-od');
+  if (mode === 'nb') {
+    nbRow.style.display = 'grid';
+    odInput.readOnly = true; odInput.style.opacity = '0.5'; odInput.style.cursor = 'not-allowed';
+    btnNB.style.background = 'var(--accent)'; btnNB.style.color = '#000';
+    btnOD.style.background = 'transparent'; btnOD.style.color = 'var(--muted)';
+  } else {
+    nbRow.style.display = 'none';
+    odInput.readOnly = false; odInput.style.opacity = '1'; odInput.style.cursor = 'auto';
+    odInput.value = '';
+    document.getElementById('pi-nb').value = '';
+    btnOD.style.background = 'var(--accent)'; btnOD.style.color = '#000';
+    btnNB.style.background = 'transparent'; btnNB.style.color = 'var(--muted)';
+    setResult('pi-result', null);
+    document.getElementById('pi-wt-info').style.display = 'none';
+  }
+}
+
+function applyNB() {
+  const nb = document.getElementById('pi-nb').value;
+  const odInput = document.getElementById('pi-od');
+  if (nb && NB_OD[nb]) { odInput.value = NB_OD[nb]; }
+  else { odInput.value = ''; }
+}
+
+function calcPipes() {
+  const od  = parseFloat(document.getElementById('pi-od').value);
+  const wt  = parseFloat(document.getElementById('pi-wt').value);
+  const len = parseFloat(document.getElementById('pi-len').value);
+  const nos = parseFloat(document.getElementById('pi-nos').value);
+  const info = document.getElementById('pi-wt-info');
+  if (isNaN(od)||isNaN(wt)||wt >= od/2) { setResult('pi-result', null); info.style.display='none'; return; }
+  const wtpm = (od - wt) * wt * 0.02466;
+  document.getElementById('pi-wt-val').textContent = wtpm.toFixed(4);
+  info.style.display = 'inline-flex';
+  if (isNaN(len)||isNaN(nos)) { setResult('pi-result', null); return; }
+  setResult('pi-result', wtpm * len * nos / 1000);
+}
+
+function calcDecking() {
+  const thk = parseFloat(document.getElementById('dk-thk').value);
+  const len = parseFloat(document.getElementById('dk-len').value);
+  const nos = parseFloat(document.getElementById('dk-nos').value);
+  if (isNaN(thk)||isNaN(len)||isNaN(nos)) { setResult('dk-result', null); return; }
+  const factor = DECKING[thk];
+  if (!factor) { setResult('dk-result', null); return; }
+  setResult('dk-result', factor * len * nos / 1000);
+}
+
+// ============ TAB SWITCHING ============
+function switchTab(id, btn) {
+  document.querySelectorAll('.calc-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ============ BOM ============
+let bomItems = [];
+
+function getResultValue(id) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  const txt = el.textContent.replace('MT','').trim();
+  if (txt === '—' || txt === '') return null;
+  return parseFloat(txt);
+}
+
+function getBOMEntry(section) {
+  let name = '', detail = '', value = null;
+  switch(section) {
+    case 'plates': {
+      const thk = document.getElementById('pl-thk').value;
+      const wid = document.getElementById('pl-wid').value;
+      const len = document.getElementById('pl-len').value;
+      const nos = document.getElementById('pl-nos').value;
+      value = getResultValue('pl-result');
+      name = 'MS Plate';
+      detail = `${thk}×${wid}×${len}mm | Nos: ${nos}`;
+      break;
+    }
+    case 'channels': {
+      const size = document.getElementById('ch-size').options[document.getElementById('ch-size').selectedIndex].text;
+      const len = document.getElementById('ch-len').value;
+      const nos = document.getElementById('ch-nos').value;
+      value = getResultValue('ch-result');
+      name = 'MS Channel';
+      detail = `${size} | ${len}Mtr | Nos: ${nos}`;
+      break;
+    }
+    case 'beams': {
+      const size = document.getElementById('bm-size').options[document.getElementById('bm-size').selectedIndex].text;
+      const len = document.getElementById('bm-len').value;
+      const nos = document.getElementById('bm-nos').value;
+      value = getResultValue('bm-result');
+      name = 'RS Joist / Beam';
+      detail = `${size} | ${len}Mtr | Nos: ${nos}`;
+      break;
+    }
+    case 'purlin': {
+      const len = document.getElementById('pu-len').value;
+      const nos = document.getElementById('pu-nos').value;
+      value = getResultValue('pu-result');
+      name = 'Purlin';
+      detail = `${len}Mtr | Nos: ${nos}`;
+      break;
+    }
+    case 'roofing': {
+      const type = document.getElementById('rf-type').options[document.getElementById('rf-type').selectedIndex].text;
+      const len = document.getElementById('rf-len').value;
+      const nos = document.getElementById('rf-nos').value;
+      value = getResultValue('rf-result');
+      name = 'Roofing Sheet';
+      detail = `${type} | ${len}Mtr | Nos: ${nos}`;
+      break;
+    }
+    case 'angles': {
+      const size = document.getElementById('ag-size').value;
+      const thk = document.getElementById('ag-thk').value;
+      const len = document.getElementById('ag-len').value;
+      const nos = document.getElementById('ag-nos').value;
+      value = getResultValue('ag-result');
+      name = 'MS Angle';
+      detail = `${size}mm × ${thk}mm THK | ${len}Mtr | Nos: ${nos}`;
+      break;
+    }
+    case 'flats': {
+      const size = document.getElementById('fl-size').value;
+      const thk = document.getElementById('fl-thk').value;
+      const len = document.getElementById('fl-len').value;
+      const nos = document.getElementById('fl-nos').value;
+      value = getResultValue('fl-result');
+      name = 'MS Flat';
+      detail = `${size}mm × ${thk}mm THK | ${len}Mtr | Nos: ${nos}`;
+      break;
+    }
+    case 'decking': {      const thk = document.getElementById('dk-thk').value;
+      const len = document.getElementById('dk-len').value;
+      const nos = document.getElementById('dk-nos').value;
+      value = getResultValue('dk-result');
+      name = 'Decking Sheet';
+      detail = `${thk}mm THK | ${len}Mtr | Nos: ${nos}`;
+      break;
+    }
+    case 'pipes': {
+      const od  = document.getElementById('pi-od').value;
+      const wt  = document.getElementById('pi-wt').value;
+      const len = document.getElementById('pi-len').value;
+      const nos = document.getElementById('pi-nos').value;
+      const nb  = document.getElementById('pi-nb').value;
+      value = getResultValue('pi-result');
+      name = 'MS Pipe';
+      detail = nb ? `NB ${nb} (OD ${od}mm) | WT: ${wt}mm | ${len}Mtr | Nos: ${nos}` : `OD: ${od}mm | WT: ${wt}mm | ${len}Mtr | Nos: ${nos}`;
+      break;
+    }
+  }
+  return { name, detail, value };
+}
+
+function addToBOM(section) {
+  const entry = getBOMEntry(section);
+  if (!entry.value) { alert('Please fill all fields to calculate first.'); return; }
+  bomItems.push({ id: Date.now(), ...entry });
+  renderBOM();
+}
+
+function renderBOM() {
+  const list = document.getElementById('bom-list');
+  const count = document.getElementById('bom-count');
+  count.textContent = bomItems.length;
+  const html = bomItems.length === 0
+    ? '<div class="bom-empty">No items added yet.<br>Calculate and add items above.</div>'
+    : bomItems.map(item => `
+      <div class="bom-item">
+        <div>
+          <div class="bom-item-name">${item.name}</div>
+          <div class="bom-item-detail">${item.detail}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <div class="bom-item-qty">${fmt(item.value)} MT</div>
+          <button class="bom-item-remove" onclick="removeBOM(${item.id})">✕</button>
+        </div>
+      </div>`).join('');
+  const total = bomItems.reduce((s, i) => s + i.value, 0);
+  const totalStr = bomItems.length ? fmt(total) + ' MT' : '0.000 MT';
+
+  // sync desktop
+  list.innerHTML = html;
+  document.getElementById('bom-grand').textContent = totalStr;
+
+  // sync mobile drawer
+  const dl = document.getElementById('bom-list-drawer');
+  if (dl) dl.innerHTML = html.replace('No items added yet.<br>Calculate and add items above.', 'No items yet.');
+  const dg = document.getElementById('bom-grand-drawer');
+  if (dg) dg.textContent = totalStr;
+  const dc = document.getElementById('bom-count-drawer');
+  if (dc) dc.textContent = bomItems.length;
+  const fab = document.getElementById('fab-count');
+  if (fab) fab.textContent = bomItems.length;
+}
+
+function removeBOM(id) {
+  bomItems = bomItems.filter(i => i.id !== id);
+  renderBOM();
+}
+
+function clearBOM() {
+  if (bomItems.length === 0) return;
+  if (confirm('Clear all BOM items?')) { bomItems = []; renderBOM(); }
+}
+
+function exportBOM() {
+  if (bomItems.length === 0) { alert('No items to export.'); return; }
+  let csv = 'Item,Description,Weight (MT)\n';
+  bomItems.forEach((item, i) => {
+    csv += `${i+1},"${item.name}","${item.detail}",${fmt(item.value)}\n`;
+  });
+  const total = bomItems.reduce((s, i) => s + i.value, 0);
+  csv += `,,Grand Total,${fmt(total)}\n`;
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'steel_bom_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+// ============ CLEAR SECTION ============
+const SECTION_FIELDS = {
+  plates:   ['pl-thk','pl-wid','pl-len','pl-nos'],
+  channels: ['ch-size','ch-len','ch-nos'],
+  beams:    ['bm-size','bm-len','bm-nos'],
+  purlin:   ['pu-len','pu-nos'],
+  roofing:  ['rf-type','rf-len','rf-nos'],
+  angles:   ['ag-size','ag-thk','ag-len','ag-nos'],
+  flats:    ['fl-size','fl-thk','fl-len','fl-nos'],
+  decking:  ['dk-thk','dk-len','dk-nos'],
+  pipes:    ['pi-nb','pi-od','pi-wt','pi-len','pi-nos'],
+};
+const RESULT_IDS = {plates:'pl-result',channels:'ch-result',beams:'bm-result',purlin:'pu-result',roofing:'rf-result',angles:'ag-result',flats:'fl-result',decking:'dk-result',pipes:'pi-result'};
+const WT_INFO_IDS = {channels:'ch-wt-info',beams:'bm-wt-info',angles:'ag-wt-info',flats:'fl-wt-info',pipes:'pi-wt-info'};
+
+function clearSection(section) {
+  (SECTION_FIELDS[section] || []).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = '';
+  });
+  // reset dependent dropdowns
+  if (section === 'angles') {
+    document.getElementById('ag-thk').innerHTML = '<option value="">Select THK</option>';
+  }
+  if (section === 'flats') {
+    document.getElementById('fl-thk').innerHTML = '<option value="">Select THK</option>';
+  }
+  if (section === 'pipes') {
+    document.getElementById('pi-od').readOnly = true;
+    document.getElementById('pi-od').style.opacity = '0.5';
+  }
+  // hide wt-info
+  const wi = WT_INFO_IDS[section];
+  if (wi) { const el = document.getElementById(wi); if(el) el.style.display='none'; }
+  // reset result
+  setResult(RESULT_IDS[section], null);
+}
+
+// ============ MOBILE DRAWER ============
+function openBOMDrawer() {
+  document.getElementById('bom-overlay').classList.add('open');
+  document.getElementById('bom-drawer').classList.add('open');
+}
+function closeBOMDrawer() {
+  document.getElementById('bom-overlay').classList.remove('open');
+  document.getElementById('bom-drawer').classList.remove('open');
+}
+
+// ============ INIT ============
+initDropdowns();
+</script>
+</body>
+</html>
